@@ -5,6 +5,8 @@ import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import * as uuid from 'uuid'
 import { parseUserId } from '../auth/utils';
+import { getAttachmentUrl } from './attachmentUtils'
+
 
 // TODO: Implement businessLogic
 const todoAccess = new TodosAccess();
@@ -25,6 +27,14 @@ export async function updateTodo(UpdateTodoRequest:UpdateTodoRequest,todoId:stri
 export async function deleteTodo(todoId:string,userId:string){
     return await todoAccess.deleteTodo(todoId,userId)
 }
+
+export async function updateAttachmentUrl(userId:string,todoId:string,attachmentId:string){
+    
+   let url = getAttachmentUrl(attachmentId)
+    await todoAccess.updateAttachmentInTodoItem(userId, todoId, url)
+
+    return 
+}
 export async function createTodo(
     CreateTodoRequest:CreateTodoRequest,
     jwtToken: string
@@ -33,7 +43,8 @@ export async function createTodo(
     const todoId  = uuid.v4()
     const userId = parseUserId(jwtToken)
 
-    return await todoAccess.createTodo({
+    if (CreateTodoRequest.name.length > 0) {
+             return await todoAccess.createTodo({
         userId: userId,
         todoId,
         name: CreateTodoRequest.name,
@@ -43,5 +54,10 @@ export async function createTodo(
         attachmentUrl : ""
         
     })
+    }
+    else {
+         throw new Error("Todo name cannot be empty")
+    }
+   
     
 }
